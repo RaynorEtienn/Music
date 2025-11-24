@@ -1,15 +1,12 @@
 """
 src/constants.py
-
-Defines the musical constants, tuning standards, and visual styling for the project.
-This file serves as the Single Source of Truth for note naming and aesthetic configuration.
+Single Source of Truth.
 """
 
-# Chromatic scale using Sharps for simplicity in calculation
-# Index 0 = C
+# Chromatic scale (Simplified for calculation)
 CHROMATIC_SCALE = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
-# Translation map: International (Key) -> Solfège (Value)
+# Translation map
 NOTE_TRANSLATION = {
     "C": "Do",
     "C#": "Do#",
@@ -30,20 +27,45 @@ NOTE_TRANSLATION = {
     "B": "Si",
 }
 
-# Standard Guitar Tuning (Low E to High E)
-# Represented by their index in the CHROMATIC_SCALE
-# E=4, A=9, D=2, G=7, B=11, E=4
-GUITAR_TUNING_INDICES = [4, 9, 2, 7, 11, 4]
+# Intervals Mapping (Semitones -> Name)
+INTERVALS = {
+    0: "R",
+    1: "b2",
+    2: "2",
+    3: "b3",
+    4: "3",
+    5: "4",
+    6: "b5",
+    7: "5",
+    8: "b6",
+    9: "6",
+    10: "b7",
+    11: "7",
+}
 
-# Visual Styling - French Touch Aesthetic
+# Chord Formulas (Semitones from Root)
+# Essential for French Touch / House
+CHORD_FORMULAS = {
+    "Major": [0, 4, 7],  # Happy
+    "Minor": [0, 3, 7],  # Sad
+    "5": [0, 7],  # Power Chord
+    "7": [0, 4, 7, 10],  # Dominant (Funk)
+    "Maj7": [0, 4, 7, 11],  # Jazzy/Dreamy
+    "m7": [0, 3, 7, 10],  # The "French Touch" standard
+    "m9": [0, 3, 7, 10, 14],  # Deep House
+    "sus4": [0, 5, 7],  # Tension
+    "dim7": [0, 3, 6, 9],  # Passing chord
+}
+
+GUITAR_TUNING_INDICES = [4, 9, 2, 7, 11, 4]  # E A D G B E
+
 COLORS = {
     "background": "#FFFFFF",
     "white_key": "#FFFFFF",
     "black_key": "#1A1A1A",
-    "highlight_primary": "#DAA520",  # Goldenrod (The "Touch" Gold)
-    "highlight_secondary": "#20B2AA",  # LightSeaGreen (Extensions/Modulations)
-    "highlight_root": "#FF4500",  # OrangeRed (Root Notes)
-    "muted": "#A9A9A9",  # DarkGray (Muted Strings)
+    "highlight_primary": "#DAA520",  # Gold
+    "highlight_secondary": "#20B2AA",  # Teal
+    "muted": "#CCCCCC",
     "text_main": "#333333",
-    "text_light": "#FFFFFF",
+    "grid": "#E0E0E0",
 }

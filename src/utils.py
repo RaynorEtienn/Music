@@ -1,53 +1,79 @@
 """
 src/utils.py
-
-Helper functions for music theory logic and string formatting.
-Handles the conversion between mathematical fretboard positions and human-readable notes.
+Logic for notes, intervals, and chord calculation.
 """
 
-from typing import Tuple
-from src.constants import CHROMATIC_SCALE, GUITAR_TUNING_INDICES, NOTE_TRANSLATION
+from typing import List
+from src.constants import (
+    CHROMATIC_SCALE,
+    GUITAR_TUNING_INDICES,
+    NOTE_TRANSLATION,
+    CHORD_FORMULAS,
+)
+
+
+def note_to_int(note: str) -> int:
+    """Converts 'C' to 0, 'C#' to 1, ... 'B' to 11."""
+    flat_map = {"Db": "C#", "Eb": "D#", "Gb": "F#", "Ab": "G#", "Bb": "A#"}
+    clean_note = flat_map.get(note, note)
+    try:
+        return CHROMATIC_SCALE.index(clean_note)
+    except ValueError:
+        raise ValueError(f"Note {note} not found in chromatic scale.")
 
 
 def get_dual_lang_label(note_en: str) -> str:
-    """
-    Returns a formatted string with both English and French notation.
-    Example Input: "C" -> Output: "C\n(Do)"
-    """
-    # Clean input (handle potential flat/sharp inconsistencies if needed later)
+    """Returns 'C\n(Do)'."""
     note_fr = NOTE_TRANSLATION.get(note_en, note_en)
     return f"{note_en}\n({note_fr})"
 
 
 def fret_to_note(string_index: int, fret_number: int) -> str:
+    """Returns the note name at a specific guitar position."""
+    base = GUITAR_TUNING_INDICES[string_index]
+    return CHROMATIC_SCALE[(base + fret_number) % 12]
+
+
+def calculate_piano_indices(
+    root_note: str, chord_type: str, inversion: int = 0
+) -> List[int]:
     """
-    Calculates the musical note name based on the string index and fret number.
+    Calculates ABSOLUTE SEMITONE INDICES relative to the starting C (C3).
+    C3 = 0, C#3 = 1, ... C4 = 12 ...
 
     Args:
-        string_index (int): 0 (Low E) to 5 (High E).
-        fret_number (int): The fret number (0 for open).
+        root_note: 'C', 'A#', etc.
+        chord_type: 'm7', 'Major', etc.
+        inversion: 0, 1, 2...
 
     Returns:
-        str: The English note name (e.g., "A#", "C").
+        List[int]: List of absolute semitones to highlight (e.g., [9, 12, 16, 19] for Am7).
     """
-    if not (0 <= string_index <= 5):
-        raise ValueError("String index must be between 0 and 5.")
+    if chord_type not in CHORD_FORMULAS:
+        raise ValueError(f"Chord type '{chord_type}' not defined.")
 
-    # 1. Get the base note index of the open string (e.g., Low E is index 4 in Chromatic Scale)
-    base_note_index = GUITAR_TUNING_INDICES[string_index]
+    root_val = note_to_int(root_note)  # 0-11
+    formula = CHORD_FORMULAS[chord_type]  # e.g. [0, 3, 7, 10]
 
-    # 2. Add the fret number to get the absolute semitone distance
-    current_note_index = base_note_index + fret_number
+    # 1. Create base chord notes (Absolute semitones from C0)
+    # We assume the root is in the first octave (0-11) initially
+    chord_notes = [(root_val + interval) for interval in formula]
 
-    # 3. Modulo 12 to wrap around the chromatic scale
-    final_note_index = current_note_index % 12
+    # 2. Apply Inversion (Rotate lowest note up by 12 semitones)
+    for _ in range(inversion):
+        note = chord_notes.pop(0)
+        chord_notes.append(note + 12)
 
-    return CHROMATIC_SCALE[final_note_index]
+    # 3. Normalize for Visualizer (Fit into the 2-octave window if possible)
+    # The visualizer usually shows C3 (0) to B4 (23).
+    # If the chord is too low or too high, we shift octaves.
 
+    # Shift down if everything is high
+    while min(chord_notes) >= 12:
+        chord_notes = [n - 12 for n in chord_notes]
 
-def get_interval_name(root_note: str, target_note: str):
-    """
-    Placeholder for future logic to calculate intervals (e.g., "m7", "P5").
-    Useful for advanced diagrams later.
-    """
-    pass
+    # Shift up if we have negatives (shouldn't happen with logic above but safe)
+    while min(chord_notes) < 0:
+        chord_notes = [n + 12 for n in chord_notes]
+
+    return chord_notes
