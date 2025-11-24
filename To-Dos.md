@@ -1,0 +1,1 @@
+- Add On-Off mode for Standard Chords vs French-Touch/House variations.
