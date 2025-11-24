@@ -58,13 +58,49 @@ CHORD_FORMULAS = {
     "Major_Pentatonic": [0, 2, 4, 7, 9],  # Country / Soul
 }
 
+# Mapping Semitones -> Interval Name (Simplified)
+INTERVAL_MAP = {
+    0: "R",
+    1: "b2",
+    2: "2",
+    3: "b3",
+    4: "3",
+    5: "4",
+    6: "b5",
+    7: "5",
+    8: "b6",
+    9: "6",
+    10: "b7",
+    11: "7",
+}
+
 COLORS = {
     "background": "#FFFFFF",
     "white_key": "#FFFFFF",
     "black_key": "#1A1A1A",
-    "highlight_primary": "#DAA520",  # Gold (French Touch)
-    "highlight_secondary": "#20B2AA",  # Teal
+    # --- FUNCTIONAL COLORS (NEW) ---
+    "root": "#FF4500",  # OrangeRed (La base)
+    "third": "#FFD700",  # Gold (L'émotion - Majeure ou Mineure)
+    "fifth": "#4682B4",  # SteelBlue (La structure stable)
+    "seventh": "#9370DB",  # MediumPurple (Le Funk)
+    "extension": "#20B2AA",  # LightSeaGreen (9, 11, 13 - La couleur House)
+    "default": "#DAA520",  # Fallback
     "muted": "#CCCCCC",
     "text_main": "#333333",
+    "text_light": "#FFFFFF",
     "grid": "#E0E0E0",
+}
+
+# Mapping Interval Semitone -> Color Key
+INTERVAL_COLOR_MAP = {
+    0: "root",
+    3: "third",
+    4: "third",  # Tierces min/maj
+    7: "fifth",  # Quinte
+    10: "seventh",
+    11: "seventh",  # 7èmes min/maj
+    2: "extension",
+    14: "extension",  # 9ème
+    5: "extension",  # 11ème / 4te
+    9: "extension",  # 13ème / 6te
 }

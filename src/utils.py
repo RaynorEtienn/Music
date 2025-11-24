@@ -9,6 +9,8 @@ from src.constants import (
     GUITAR_TUNING_INDICES,
     NOTE_TRANSLATION,
     CHORD_FORMULAS,
+    COLORS,
+    INTERVAL_COLOR_MAP,
 )
 
 
@@ -26,6 +28,17 @@ def get_dual_lang_label(note_en: str) -> str:
     """Returns formatted string 'C\n(Do)'."""
     note_fr = NOTE_TRANSLATION.get(note_en, note_en)
     return f"{note_en}\n({note_fr})"
+
+
+def get_note_color(root_val: int, note_val: int) -> str:
+    """
+    Returns the hex color code based on the interval between root and note.
+    """
+    # Distance en demi-tons (modulo 12)
+    interval = (note_val - root_val) % 12
+
+    color_key = INTERVAL_COLOR_MAP.get(interval, "default")
+    return COLORS[color_key]
 
 
 def fret_to_note(string_index: int, fret_number: int) -> str:
