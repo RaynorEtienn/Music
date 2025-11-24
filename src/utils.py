@@ -1,9 +1,9 @@
 """
 src/utils.py
-Logic for notes, intervals, and chord calculation.
+Logic for notes, intervals, and chord/scale calculation.
 """
 
-from typing import List
+from typing import List, Tuple
 from src.constants import (
     CHROMATIC_SCALE,
     GUITAR_TUNING_INDICES,
@@ -23,7 +23,7 @@ def note_to_int(note: str) -> int:
 
 
 def get_dual_lang_label(note_en: str) -> str:
-    """Returns 'C\n(Do)'."""
+    """Returns formatted string 'C\n(Do)'."""
     note_fr = NOTE_TRANSLATION.get(note_en, note_en)
     return f"{note_en}\n({note_fr})"
 
@@ -35,45 +35,70 @@ def fret_to_note(string_index: int, fret_number: int) -> str:
 
 
 def calculate_piano_indices(
-    root_note: str, chord_type: str, inversion: int = 0
+    root_note: str, formula_name: str, inversion: int = 0
 ) -> List[int]:
     """
-    Calculates ABSOLUTE SEMITONE INDICES relative to the starting C (C3).
-    C3 = 0, C#3 = 1, ... C4 = 12 ...
-
-    Args:
-        root_note: 'C', 'A#', etc.
-        chord_type: 'm7', 'Major', etc.
-        inversion: 0, 1, 2...
-
-    Returns:
-        List[int]: List of absolute semitones to highlight (e.g., [9, 12, 16, 19] for Am7).
+    Calculates ABSOLUTE SEMITONE INDICES relative to C3 (0) for Piano.
+    Compatible with Chords AND Scales.
     """
-    if chord_type not in CHORD_FORMULAS:
-        raise ValueError(f"Chord type '{chord_type}' not defined.")
+    if formula_name not in CHORD_FORMULAS:
+        raise ValueError(f"Formula '{formula_name}' not defined.")
 
-    root_val = note_to_int(root_note)  # 0-11
-    formula = CHORD_FORMULAS[chord_type]  # e.g. [0, 3, 7, 10]
+    root_val = note_to_int(root_note)
+    formula = CHORD_FORMULAS[formula_name]
 
-    # 1. Create base chord notes (Absolute semitones from C0)
-    # We assume the root is in the first octave (0-11) initially
+    # Generate notes (Absolute semitones from C0 reference, adjusted to C3 start)
+    # We map Root relative to C.
     chord_notes = [(root_val + interval) for interval in formula]
 
-    # 2. Apply Inversion (Rotate lowest note up by 12 semitones)
-    for _ in range(inversion):
-        note = chord_notes.pop(0)
-        chord_notes.append(note + 12)
+    # Apply Inversion (Only makes sense for chords, but code handles list rotation)
+    if inversion > 0:
+        for _ in range(inversion):
+            note = chord_notes.pop(0)
+            chord_notes.append(note + 12)  # Move octave up
 
-    # 3. Normalize for Visualizer (Fit into the 2-octave window if possible)
-    # The visualizer usually shows C3 (0) to B4 (23).
-    # If the chord is too low or too high, we shift octaves.
-
-    # Shift down if everything is high
+    # Normalize for Visualizer (Aim for C3-B4 range: 0 to 23)
+    # 1. Shift down if too high
     while min(chord_notes) >= 12:
         chord_notes = [n - 12 for n in chord_notes]
-
-    # Shift up if we have negatives (shouldn't happen with logic above but safe)
+    # 2. Shift up if too low
     while min(chord_notes) < 0:
         chord_notes = [n + 12 for n in chord_notes]
 
     return chord_notes
+
+
+def get_all_fretboard_positions(
+    root_note: str, formula_name: str, max_fret: int = 12
+) -> List[Tuple[int, int]]:
+    """
+    Scans the guitar fretboard and returns ALL (string, fret) tuples
+    that match the notes in the requested scale/chord.
+
+    Args:
+        root_note: 'A', 'C#', etc.
+        formula_name: 'Dorian', 'm7', etc.
+        max_fret: How far to scan (default 12).
+    """
+    if formula_name not in CHORD_FORMULAS:
+        raise ValueError(f"Formula '{formula_name}' not defined.")
+
+    root_val = note_to_int(root_note)
+    formula = CHORD_FORMULAS[formula_name]
+
+    # Calculate the valid pitch classes (0-11) for this scale
+    valid_pitch_classes = set((root_val + interval) % 12 for interval in formula)
+
+    positions = []
+
+    # Iterate over every possible position on the neck
+    for string_idx in range(6):  # 0 to 5
+        string_base_pitch = GUITAR_TUNING_INDICES[string_idx]
+
+        for fret in range(max_fret + 1):
+            current_pitch = (string_base_pitch + fret) % 12
+
+            if current_pitch in valid_pitch_classes:
+                positions.append((string_idx, fret))
+
+    return positions
